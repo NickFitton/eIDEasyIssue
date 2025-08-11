@@ -1,0 +1,20 @@
+{
+  "extends": "./node_modules/@tsconfig/node22/tsconfig.json",
+  "include": ["./**/*"],
+  "swc": true,
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM"],
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "incremental": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "noErrorTruncation": true,
+    "noUnusedLocals": true,
+    "inlineSourceMap": true
+  }
+}
