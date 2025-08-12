@@ -1,5 +1,7 @@
-import { createHmac } from "crypto";
+import crypto from "crypto-js";
+import moment from "moment";
 import { AxiosError, type AxiosInstance } from "axios";
+import { createHmac } from "crypto";
 
 export interface File {
   // Base64 encoded contents
@@ -101,6 +103,7 @@ export class EidEasy implements IEidEasy {
       timestamp,
       "/api/signatures/e-seal/create"
     );
+    console.log(hmac);
     const requestBody = {
       client_id: this.clientId,
       secret: this.secret,
@@ -153,12 +156,35 @@ export class EidEasy implements IEidEasy {
 
   private buildSignature(
     docId: string,
-    timestamp: number,
+    _timestamp: number,
     path: string
   ): string {
+    // Snippet taken from eID Easy support email
+    let timestamp = moment(new Date().toUTCString()).valueOf() / 1000;
+
+    let requestURI = path; // pm.request.url.getPath();
+    let client_id = this.clientId; // pm.collectionVariables.get("client_id");
+    let secret = this.secret; // pm.collectionVariables.get("secret");
+    let doc_id = docId; // pm.environment.get("doc_id");
+    let hmac_key = this.hmacKey; // pm.collectionVariables.get("secret");
+
+    let signatureRawData = client_id + secret + doc_id + timestamp + requestURI;
+
+    // Generate the HMAC signature
+    const signature = crypto
+      .HmacSHA256(signatureRawData, hmac_key)
+      .toString(crypto.enc.Hex);
+
+    // Existing snippet
     const data = [this.clientId, this.secret, docId, timestamp, path].join("");
-    return createHmac("sha256", this.hmacKey)
+    const nodeJsSignature = createHmac("sha256", this.hmacKey)
       .update(data, "utf8")
       .digest("hex");
+
+    if (nodeJsSignature !== signature) {
+      throw new Error("Signatures differ");
+    }
+
+    return signature;
   }
 }
