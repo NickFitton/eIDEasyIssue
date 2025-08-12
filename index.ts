@@ -8,8 +8,8 @@ const main = async () => {
   const file = readFileSync("./" + fileName);
   const client = new EidEasy(
     "https://test.eideasy.com",
-    "7vlIio4m3Pt0y4T52mXbhlG6PxBh7a6Z",
-    "3tPu87X8desK2caAReGjRRID32WtCA2q",
+    "<REDACTED clientId>",
+    "<REDACTED secret>",
     axios.create({})
   );
 

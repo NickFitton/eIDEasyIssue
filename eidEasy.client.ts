@@ -1,4 +1,4 @@
-import { AxiosError, type AxiosInstance } from "axios";
+import { type AxiosInstance } from "axios";
 import { createHmac } from "crypto";
 
 export interface File {
@@ -69,7 +69,7 @@ export class EidEasy implements IEidEasy {
         {
           fileContent,
           fileName,
-          mimeType: "applciation/pdf",
+          mimeType: "application/pdf",
         },
       ],
       client_id: this.clientId,
@@ -143,12 +143,9 @@ export class EidEasy implements IEidEasy {
 
   private buildSignature(
     docId: string,
-    _timestamp: number,
+    timestamp: number,
     path: string
   ): string {
-    // Snippet taken from eID Easy support email
-    let timestamp = Math.floor(Date.now() / 1000);
-
     const data = [this.clientId, this.secret, docId, timestamp, path].join("");
     return createHmac("sha256", this.secret).update(data, "utf8").digest("hex");
   }
