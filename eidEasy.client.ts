@@ -1,5 +1,3 @@
-import crypto from "crypto-js";
-import moment from "moment";
 import { AxiosError, type AxiosInstance } from "axios";
 import { createHmac } from "crypto";
 
@@ -47,19 +45,16 @@ interface SignedFileResponse {
 
 export class EidEasy implements IEidEasy {
   private readonly baseUrl: string;
-  private readonly hmacKey: string;
   private readonly clientId: string;
   private readonly secret: string;
   private readonly axios: AxiosInstance;
   constructor(
     baseUrl: string,
-    hmacKey: string,
     clientId: string,
     secret: string,
     axios: AxiosInstance
   ) {
     this.baseUrl = baseUrl;
-    this.hmacKey = hmacKey;
     this.clientId = clientId;
     this.secret = secret;
     this.axios = axios;
@@ -103,7 +98,7 @@ export class EidEasy implements IEidEasy {
       timestamp,
       "/api/signatures/e-seal/create"
     );
-    console.log(hmac);
+
     const requestBody = {
       client_id: this.clientId,
       secret: this.secret,
@@ -135,23 +130,15 @@ export class EidEasy implements IEidEasy {
   }
 
   private async request<R = object>(path: string, body: object) {
-    try {
-      return await this.axios<R>({
-        url: `${this.baseUrl}${path}`,
-        method: "POST",
-        data: body,
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      });
-    } catch (e: unknown) {
-      if (e instanceof AxiosError) {
-        console.log(await e.response.data);
-        throw new Error("Request failed");
-      }
-      throw e;
-    }
+    return await this.axios<R>({
+      url: `${this.baseUrl}${path}`,
+      method: "POST",
+      data: body,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
   }
 
   private buildSignature(
@@ -160,31 +147,9 @@ export class EidEasy implements IEidEasy {
     path: string
   ): string {
     // Snippet taken from eID Easy support email
-    let timestamp = moment(new Date().toUTCString()).valueOf() / 1000;
+    let timestamp = Math.floor(Date.now() / 1000);
 
-    let requestURI = path; // pm.request.url.getPath();
-    let client_id = this.clientId; // pm.collectionVariables.get("client_id");
-    let secret = this.secret; // pm.collectionVariables.get("secret");
-    let doc_id = docId; // pm.environment.get("doc_id");
-    let hmac_key = this.hmacKey; // pm.collectionVariables.get("secret");
-
-    let signatureRawData = client_id + secret + doc_id + timestamp + requestURI;
-
-    // Generate the HMAC signature
-    const signature = crypto
-      .HmacSHA256(signatureRawData, hmac_key)
-      .toString(crypto.enc.Hex);
-
-    // Existing snippet
     const data = [this.clientId, this.secret, docId, timestamp, path].join("");
-    const nodeJsSignature = createHmac("sha256", this.hmacKey)
-      .update(data, "utf8")
-      .digest("hex");
-
-    if (nodeJsSignature !== signature) {
-      throw new Error("Signatures differ");
-    }
-
-    return signature;
+    return createHmac("sha256", this.secret).update(data, "utf8").digest("hex");
   }
 }
