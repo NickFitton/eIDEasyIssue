@@ -3,6 +3,7 @@ import { createHmac } from "crypto";
 import axios from "axios";
 import dotenv from "dotenv";
 import { readFileSync } from "fs";
+import { AxiosError } from "axios";
 
 dotenv.config();
 const fileName = "Google.pdf";
@@ -65,22 +66,31 @@ let signature = buildSignature(
   "/api/signatures/e-seal/create"
 );
 
-const response = await axios.post(
-  "https://test.eideasy.com/api/signatures/e-seal/create",
-  {
-    signature: signature,
-    timestamp: timestampValue,
-    client_id: process.env.CLIENT_ID,
-    secret: process.env.MY_SECRET,
-    doc_id: docIdValue,
-    hmac: signature,
-  },
-  {
-    headers: {
-      "Content-Type": "application/json",
-    },
+const createSealBody = {
+  signature: signature,
+  timestamp: timestampValue,
+  client_id: process.env.CLIENT_ID,
+  secret: process.env.MY_SECRET,
+  doc_id: docIdValue,
+  hmac: signature,
+};
+console.log(JSON.stringify(createSealBody, undefined, 2));
+try {
+  const response = await axios.post(
+    "https://test.eideasy.com/api/signatures/e-seal/create",
+    createSealBody,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+} catch (e) {
+  if (e instanceof AxiosError) {
+    console.error("Response status:", e.status);
+    console.error("Resonse data:", e.response?.data);
   }
-);
+}
 
 console.log("Response status:", response.status);
 console.log("Response data:", response.data);
