@@ -85,12 +85,12 @@ try {
       },
     }
   );
+
+  console.log("Response status:", response.status);
+  console.log("Response data:", response.data);
 } catch (e) {
   if (e instanceof AxiosError) {
     console.error("Response status:", e.status);
     console.error("Resonse data:", e.response?.data);
   }
 }
-
-console.log("Response status:", response.status);
-console.log("Response data:", response.data);
