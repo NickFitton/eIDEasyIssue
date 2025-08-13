@@ -1,15 +1,17 @@
 import { readFileSync, writeFileSync } from "fs";
 import axios from "axios";
+import dotenv from "dotenv";
 import { EidEasy } from "./eidEasy.client.ts";
 
 const fileName = "Google.pdf";
 
+dotenv.config();
 const main = async () => {
   const file = readFileSync("./" + fileName);
   const client = new EidEasy(
     "https://test.eideasy.com",
-    "<REDACTED clientId>",
-    "<REDACTED secret>",
+    process.env.CLIENT_ID!,
+    process.env.MY_SECRET!,
     axios.create({})
   );
 
