@@ -13,6 +13,7 @@ function buildSignature(clientId, secret, docId, timestamp, path) {
 
   // Existing snippet
   const data = [clientId, secret, docId, timestamp, path].join("");
+  console.log("Signed Data:", data);
   const nodeJsSignature = createHmac("sha256", hmacKey)
     .update(data, "utf8")
     .digest("hex");
@@ -74,7 +75,7 @@ const createSealBody = {
   doc_id: docIdValue,
   hmac: signature,
 };
-console.log(JSON.stringify(createSealBody, undefined, 2));
+console.log("Request body:", JSON.stringify(createSealBody, undefined, 2));
 try {
   const response = await axios.post(
     "https://test.eideasy.com/api/signatures/e-seal/create",
