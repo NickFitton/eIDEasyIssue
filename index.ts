@@ -24,7 +24,13 @@ const main = async () => {
   await client.sealDocument(documentId);
   console.log("downloadSignedFile");
   const output = await client.downloadSignedFile(documentId);
-  writeFileSync("./output.pdf", output);
+  if (output.status !== "OK") {
+    throw new Error("Bad response");
+  }
+  writeFileSync(
+    "./output.pdf",
+    Buffer.from(output.signed_file_contents, "base64")
+  );
 };
 
 main();

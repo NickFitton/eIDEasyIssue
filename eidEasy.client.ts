@@ -18,7 +18,7 @@ export interface IEidEasy {
     fileName: string
   ): Promise<string>;
   sealDocument(documentId: string): Promise<void>;
-  downloadSignedFile(documentId: string): Promise<string>;
+  downloadSignedFile(documentId: string): Promise<SignedFileResponse>;
 }
 
 interface PrepareFilesForSigningResponse {
@@ -31,17 +31,29 @@ interface SignedFile {
   name: string;
   contents: string;
 }
-interface SignedFileResponse {
-  status: string;
-  filename: string;
-  signer_idcode: string;
-  signer_firstname: string;
-  signer_lastname: string;
-  signer_country: string;
-  signing_method: string;
-  signed_files: SignedFile[];
-  signed_file_contents: string;
+export interface DssData {
+  crls: string[];
+  ocsps: string[];
+  certificates: string[];
 }
+type SignedFileResponse =
+  | {
+      status: "OK";
+      signed_file_contents: string;
+      filename: string;
+      signer_idcode: string;
+      signer_country: string;
+      signer_firstname: string;
+      signer_lastname: string;
+      signing_method: string;
+      verification_level: string | null;
+      signer_gender: string | null;
+      signer_ip_address: string;
+      signer_user_agent: string;
+      pades_dss_data: DssData;
+      signed_files: SignedFile[];
+    }
+  | { status: "ERROR"; message: string };
 
 export class EidEasy implements IEidEasy {
   private readonly baseUrl: string;
@@ -91,6 +103,32 @@ export class EidEasy implements IEidEasy {
     return res.data.doc_id;
   }
 
+  async prepareDigestForSigning(
+    digest: string,
+    fileName: string
+  ): Promise<PrepareFilesForSigningResponse> {
+    const requestBody = {
+      files: [
+        {
+          fileContent: digest,
+          fileName,
+          mimeType: "application/pdf",
+        },
+      ],
+      client_id: this.clientId,
+      secret: this.secret,
+      container_type: "cades",
+      baseline: "LT",
+    };
+
+    const res = await this.request<PrepareFilesForSigningResponse>(
+      "/api/signatures/prepare-files-for-signing",
+      requestBody
+    );
+
+    return res.data;
+  }
+
   async sealDocument(documentId: string): Promise<void> {
     const timestamp = Math.floor(Date.now() / 1000);
     const hmac = this.buildSignature(
@@ -110,7 +148,7 @@ export class EidEasy implements IEidEasy {
     await this.request<void>("/api/signatures/e-seal/create", requestBody);
   }
 
-  async downloadSignedFile(documentId: string): Promise<string> {
+  async downloadSignedFile(documentId: string): Promise<SignedFileResponse> {
     const requestBody = {
       client_id: this.clientId,
       secret: this.secret,
@@ -126,7 +164,7 @@ export class EidEasy implements IEidEasy {
       throw new Error("Failed to fetch signed file");
     }
 
-    return res.data.signed_file_contents;
+    return res.data;
   }
 
   private async request<R = object>(path: string, body: object) {
