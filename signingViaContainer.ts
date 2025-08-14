@@ -3,12 +3,14 @@ import dotenv from "dotenv";
 import { readFileSync, writeFileSync } from "fs";
 import { EidLocalClient } from "./client/local.client.ts";
 import { EidEasy } from "./client/cloud.client.ts";
+import { SignPdfClient } from "./client/signpdf.client.ts";
 
 dotenv.config();
 const fileName = "Google.pdf";
 
 const main = async () => {
   const fileContent = readFileSync("./" + fileName).toString("base64");
+  const signPdfClient = new SignPdfClient();
   const localClient = new EidLocalClient(
     `http://localhost:8080`,
     axios.create({})
@@ -19,7 +21,7 @@ const main = async () => {
     process.env.MY_SECRET!,
     axios.create({})
   );
-  const { signatureTime, digest } = await localClient.buildDigestForSigning({
+  const { signatureTime, digest } = await signPdfClient.buildDigestForSigning({
     fileContent,
   });
 
@@ -33,11 +35,11 @@ const main = async () => {
   const { signed_file_contents: signatureValue, pades_dss_data: padesDssData } =
     await cloudClient.downloadSignedFile(documentId);
 
-  const completeResponse = await localClient.complete({
+  const completeResponse = await signPdfClient.complete({
     fileContent,
     signatureValue,
     signatureTime,
-    padesDssData,
+    // padesDssData,
   });
 
   writeFileSync(

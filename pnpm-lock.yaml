@@ -11,6 +11,9 @@ importers:
       '@signpdf/placeholder-plain':
         specifier: ^3.2.5
         version: 3.2.5(pdfkit@0.10.0)
+      '@signpdf/signpdf':
+        specifier: ^3.2.5
+        version: 3.2.5
       '@signpdf/utils':
         specifier: ^3.2.4
         version: 3.2.4
@@ -56,6 +59,10 @@ packages:
 
   '@signpdf/placeholder-plain@3.2.5':
     resolution: {integrity: sha512-G6yq5zGNw86nck0OcoGP+mFawAKcHKA6L8Hamfsl9V2jMQjYmJFhZZdkZOw3CR2ApruXb7GN83tPxhiCKrWjfg==}
+    engines: {node: '>=12'}
+
+  '@signpdf/signpdf@3.2.5':
+    resolution: {integrity: sha512-mxGgVU+VkhCxNZ1eDGCmkE5zWFJExXPXn2myjrLcekHnJNpBKZr6WBrrznGOlLeDVAaiSVXjeysehgpZSJlJIA==}
     engines: {node: '>=12'}
 
   '@signpdf/utils@3.2.4':
@@ -621,6 +628,10 @@ snapshots:
       '@signpdf/utils': 3.2.4
     transitivePeerDependencies:
       - pdfkit
+
+  '@signpdf/signpdf@3.2.5':
+    dependencies:
+      '@signpdf/utils': 3.2.4
 
   '@signpdf/utils@3.2.4': {}
 
